@@ -17,6 +17,8 @@ import ReportBug from './pages/Report-bug';
 import Contact from './pages/Contact';
 import useWebRTCStore from './store/connectionStore';
 import { useEffect, useState } from 'react';
+import { auth } from './config/firebaseconfig';
+import { signInAnonymously } from 'firebase/auth';
 
 
 function Layout() {
@@ -30,6 +32,15 @@ function Layout() {
     setWidth(window.innerWidth);
   }
   useEffect(() => {
+
+    signInAnonymously(auth)
+      .then(() => {
+        console.log("✅ Signed in anonymously");
+      })
+      .catch((error) => {
+        console.error("❌ Anonymous auth failed:", error);
+      });
+
     window.addEventListener('resize', handleWindowSizeChange);
     return () => {
       window.removeEventListener('resize', handleWindowSizeChange);
