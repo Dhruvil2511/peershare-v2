@@ -3,12 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Mail, Coffee, Github, Linkedin } from "lucide-react";
 import dp from "../assets/dp.webp";
 import pg from "../assets/pg.webp";
-import { IconBrandGithubFilled, IconBrandLinkedin, IconBrandLinkedinFilled } from "@tabler/icons-react";
 const creators = [
     {
         name: "Dhruvil Prajapati",
         image: dp,
-        role: "Creator & Developer",
+        role: "Developer",
         email: "mailto:peershare.contact@gmail.com",
         github: "https://github.com/dhruvil2511",
         linkedin: "https://linkedin.com/in/dhruvil2511",
@@ -16,7 +15,7 @@ const creators = [
     {
         name: "Priyanshu Gupta",
         image: pg,
-        role: "Creator & Developer",
+        role: "Developer",
         email: "mailto:peershare.contact@gmail.com",
         github: "https://github.com/priyanshugupta24",
         linkedin: "https://www.linkedin.com/in/priyanshu-gupta-45b285224/",
@@ -42,10 +41,10 @@ export default function Contact() {
                         <p className="text-sm text-muted-foreground mb-4">{creator.role}</p>
                         <div className="flex justify-center gap-4">
                             <a href={creator.github} target="_blank" rel="noopener noreferrer">
-                                <IconBrandGithubFilled className="hover:text-black transition" />
+                                <Github className="hover:text-black transition" />
                             </a>
                             <a href={creator.linkedin} target="_blank" rel="noopener noreferrer">
-                                <IconBrandLinkedinFilled className="hover:text-blue-600 transition" />
+                                <Linkedin className="hover:text-blue-600 transition" />
                             </a>
                             <a href={creator.email}>
                                 <Mail className="hover:text-red-500 transition" />

@@ -9,12 +9,11 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      '@tabler/icons-react': '@tabler/icons-react/dist/esm/icons/index.mjs',
     },
   },
   server: {
     host: true,
-    allowedHosts: ['57c4-103-250-166-151.ngrok-free.app'],
+    allowedHosts: ['972c-103-250-166-205.ngrok-free.app'],
     proxy: {
       '/cleanup-room': 'http://localhost:3000'
     }

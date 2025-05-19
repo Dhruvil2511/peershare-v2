@@ -87,7 +87,7 @@ export default function TermsOfService() {
             </p>
             <p>
                 <strong>PeerShare Support</strong><br />
-                Email: <a href="mailto:dhruvilprajapati2003@gmail.com" className="text-primary underline">Peershare</a>
+                Email: <a href="mailto:peershare.contact@gmail.com" className="text-primary underline">Peershare</a>
             </p>
         </div>
     );
