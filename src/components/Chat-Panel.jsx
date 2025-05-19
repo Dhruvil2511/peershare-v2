@@ -68,7 +68,7 @@ export default function ChatPanel({
                         <div
                             key={index}
                             className={`p-2 rounded-lg break-words max-w-[85%] md:max-w-[75%] 
-                                ${msg.type === 'file-meta' ? 'bg-[#8183F4] text-white' : ''}
+                                ${msg.type === 'file-meta' ? 'bg-[#DD2C00] text-white' : ''}
                                 ${msg.sender === "local"
                                     ? "bg-primary text-primary-foreground ml-auto"
                                     : "bg-[#15D38B] text-primary-foreground mr-auto"

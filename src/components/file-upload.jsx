@@ -270,7 +270,6 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
               name: fileToSend.name,
               size: fileToSend.size,
               fileType: fileToSend.type,
-              transferTime: totalTime,
               lastModified: fileToSend.lastModified
             });
 

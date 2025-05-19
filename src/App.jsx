@@ -24,7 +24,7 @@ import { signInAnonymously } from 'firebase/auth';
 function Layout() {
   const location = useLocation();
   const hideNavbar = location.pathname.includes('/room');
-  const hideFooter = location.pathname.includes('/room') || location.pathname === '/loading' || location.pathname === '/create-room' || location.pathname.includes('/waiting-room/');
+  const hideFooter = location.pathname.includes('/room') || location.pathname === '/loading' || location.pathname === '/create-room' || location.pathname.includes('/waiting-room/') || location.pathname.includes('/join-room/');
   const setIsMobile = useWebRTCStore((state) => state.setIsMobile);
   const [width, setWidth] = useState(window.innerWidth);
 

@@ -234,7 +234,7 @@ const VideoLocal = ({ localStream }) => {
     return (
         <div className="relative w-full h-full rounded-xl overflow-hidden group bg-black">
             <div className="relative w-full h-full rounded-xl overflow-hidden group">
-                <div className="relative w-full aspect-video rounded-xl overflow-hidden">
+                <div className="relative w-full  rounded-xl overflow-hidden">
                     <video
                         ref={localVideoRef}
                         autoPlay
