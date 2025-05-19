@@ -1,14 +1,11 @@
 import { cn } from "@/lib/utils";
 import React, { useRef, useState, useEffect, use } from "react";
-import { motion, time } from "motion/react";
-import { IconUpload } from "@tabler/icons-react";
+import { motion } from "motion/react";
+import { Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import useWebRTCStore from "@/store/connectionStore";
 import { Button } from "./ui/button";
-
-const CHUNK_SIZE = 16 * 1024;
-const WAIT_TIMEOUT = 30;
 
 
 const mainVariant = {
@@ -28,8 +25,8 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
   const [progress, setProgress] = useState(0); // File send progress
   const [isAccepted, setIsAccepted] = useState(false);
   const [isReceiving, setIsReceiving] = useState(false); // Track receiving status
-  const [displayFile, setDisplayFile] = useState(null); // Track file to display
-  const [trigger, setTrigger] = useState(false); // Track trigger for remote abort
+  const [displayFile, setDisplayFile] = useState(null);
+  const [isCanceled, setIsCanceled] = useState(false);
 
   const fileInputRef = useRef(null);
   let reader = useRef(null);
@@ -38,6 +35,7 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
   const timerId = useRef(null); // Store timer reference
   const fileToSendRef = useRef(null);
   const fileMeta = useRef(null); // Store file metadata
+  const currentTransferId = useRef(null);
   const connection = useWebRTCStore((state) => state.connection);
   const incomingFileMeta = useWebRTCStore((s) => s.incomingFileMeta);
   const setIncomingFileMeta = useWebRTCStore((s) => s.setIncomingFileMeta);
@@ -45,6 +43,7 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
   const setFileTransferChannel = useWebRTCStore((state) => state.setFileTransferChannel);
   const dataChannel = useWebRTCStore((state => state.dataChannel));
   const isMobile = useWebRTCStore((state) => state.isMobile);
+  const role = useWebRTCStore((state) => state.role);
 
 
   useEffect(() => {
@@ -61,26 +60,22 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
     if (fileAbortTrigger) handleRemove();
   }, [fileAbortTrigger]);
 
-
   useEffect(() => {
-    if (!fileTransferChannel || fileTransferChannel?.readyState === "closed") {
-      setFileTransferChannel(connection?.createDataChannel("file", { ordered: true }));
-    }
-  }, [trigger]);
+    if (!fileTransferChannel) return;
 
-  useEffect(() => {
+    fileTransferChannel.addEventListener("message", listener);
 
-    fileTransferChannel?.addEventListener("message", listener);
     return () => {
-      if (fileTransferChannel) {
-        fileTransferChannel.removeEventListener("message", listener);
-        console.log("Removed message listener from fileTransferChannel");
-      }
+      fileTransferChannel.removeEventListener("message", listener);
       if (timerId.current) {
         clearInterval(timerId.current);
       }
     };
-  }, [fileTransferChannel?.readyState]);
+  }, [fileTransferChannel]);
+
+  const generateTransferId = () => {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  };
 
   const handleFileChange = (newFiles) => {
     if (!newFiles || newFiles.length === 0) {
@@ -117,9 +112,12 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
             name: msg.name,
             size: msg.size,
             mime: msg.mime,
+            transferId: msg.transferId,
           });
 
           fileMeta.current = msg;
+          currentTransferId.current = msg.transferId;
+          setIsCanceled(false);
           audio.play();
         } else if (msg.type === "file-accept") {
           if (timerId.current) {
@@ -133,18 +131,29 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
 
         } else if (msg.type === "file-reject") {
           if (timerId.current) {
-            clearInterval(timerId.current); // Stop the timer
+            clearInterval(timerId.current);
           }
-          setFile(null); // Reset file state
-          fileToSendRef.current = null; // Also clear ref
+          setFile(null);
+          fileToSendRef.current = null;
           setProgress(0);
           setIsWaiting(false);
           toast.error("Receiver rejected the file.");
+        } else if (msg.type === "file-aborted") {
+          if (msg.transferId === currentTransferId.current) {
+            handleCancelTransfer();
+            toast.info("File transfer was canceled by the other party.");
+          }
         }
       } else {
 
         if (fileMeta.current === null) {
           toast.error("File metadata not received. Please try again.");
+          resetFileTransfer();
+          return;
+        }
+        if (isCanceled) {
+          // If transfer is canceled, ignore incoming chunks
+          console.log("Ignoring chunk because transfer was canceled");
           return;
         }
         if (!isReceiving) setIsReceiving(true); // Set receiving state
@@ -180,12 +189,7 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
           };
 
           if (onMetaSent) onMetaSent(meta);
-          fileMeta.current = null;
-          setProgress(0);
-          setIsWaiting(false); // Reset waiting state
-          setIsAccepted(false); // Reset acceptance state
-          setIsReceiving(false); // Reset receiving state
-
+          resetFileTransfer();
         }
       }
     } catch (error) {
@@ -202,16 +206,30 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
       return;
     }
     if (!fileTransferChannel || fileTransferChannel.readyState !== "open") {
-      toast.error("fileTransferChannel is not available or not open");
+      toast.error("Data channel is not available or not open");
       return;
     }
 
-    const chunkSize = 16 * 1024;
+    const getOptimalChunkSize = (fileSize) => {
+      if (fileSize < 1024 * 1024) return 8 * 1024; // 8KB for small files
+      if (fileSize < 10 * 1024 * 1024) return 16 * 1024; // 16KB for medium files
+      return 32 * 1024; // 32KB for large files
+    };
+
+    const chunkSize = getOptimalChunkSize(fileToSend.size);
     let offset = 0;
+    fileTransferChannel.bufferedAmountLowThreshold = chunkSize * 6;
 
     const sendNextChunk = () => {
+      if (isCanceled) {
+        console.log("Stopping chunk sending because transfer was canceled");
+        resetFileTransfer();
+        return;
+      }
+
       if (!fileTransferChannel || fileTransferChannel.readyState !== "open") {
-        toast.error("Tried to send chunk, but channel is closed.");
+        toast.error("Connection lost while sending file.");
+        resetFileTransfer();
         return;
       }
 
@@ -219,49 +237,65 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
       reader.current = new FileReader();
 
       reader.current.onload = (e) => {
+        if (isCanceled) {
+          console.log("Transfer was canceled during chunk read");
+          resetFileTransfer();
+          return;
+        }
+
         const buffer = e.target.result;
-        fileTransferChannel.send(buffer);
-        offset += buffer.byteLength;
-        setProgress(Math.round((offset / fileToSend.size) * 100));
 
-        if (offset < fileToSend.size) {
-          if (fileTransferChannel.bufferedAmount > fileTransferChannel.bufferedAmountLowThreshold) {
-            fileTransferChannel.addEventListener("bufferedamountlow", sendNextChunk, { once: true });
+        try {
+          fileTransferChannel.send(buffer);
+
+          // Update progress
+          offset += buffer.byteLength;
+          const percentComplete = Math.round((offset / fileToSend.size) * 100);
+          setProgress(percentComplete);
+
+
+          if (offset < fileToSend.size) {
+            // If buffer is getting full, wait for bufferedamountlow event
+            if (fileTransferChannel.bufferedAmount > fileTransferChannel.bufferedAmountLowThreshold) {
+              fileTransferChannel.addEventListener("bufferedamountlow", sendNextChunk, { once: true });
+            } else {
+              setTimeout(sendNextChunk, 0);
+            }
           } else {
-            setTimeout(sendNextChunk, 0); // avoids deep recursion
+            console.log("📁 File transfer complete");
+
+
+            if (onMetaSent) onMetaSent({
+              type: "file-meta",
+              name: fileToSend.name,
+              size: fileToSend.size,
+              fileType: fileToSend.type,
+              transferTime: totalTime,
+              lastModified: fileToSend.lastModified
+            });
+
+            resetFileTransfer();
           }
-        } else {
-          console.log("📁 File transfer complete:");
-          const meta = {
-            type: "file-meta",
-            name: fileToSend.name,
-            size: fileToSend.size,
-            fileType: fileToSend.type,
-            lastModified: fileToSend.lastModified
-          };
-
-          if (onMetaSent) onMetaSent(meta);
-
-          setIsWaiting(false);
-          setIsAccepted(false);
-          setFile(null);
-          fileToSendRef.current = null;
-          setProgress(0);
+        } catch (err) {
+          console.error("Error sending chunk:", err);
+          toast.error("Failed to send file chunk. Connection may be unstable.");
+          resetFileTransfer();
         }
       };
 
       reader.current.onerror = (e) => {
-        toast.error("FileReader error");
+        console.error("FileReader error:", e);
+        toast.error("Error reading file chunk");
+        resetFileTransfer();
       };
-
 
       reader.current.readAsArrayBuffer(chunk);
     };
-    fileTransferChannel.bufferedAmountLowThreshold = chunkSize * 8;
 
-    sendNextChunk();
+
+    setTimeout(sendNextChunk, 10);
+
   };
-
 
   const handleSend = () => {
     // Use ref value as backup if state is null
@@ -280,11 +314,16 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
       return;
     }
 
+    const transferId = generateTransferId();
+    currentTransferId.current = transferId;
+    setIsCanceled(false);
+
     const metaData = {
       type: "file-meta",
       name: fileToSend.name,
       size: fileToSend.size,
       mime: fileToSend.type,
+      transferId: transferId, // Add transfer ID to metadata
     };
     fileTransferChannel.send(JSON.stringify(metaData));
 
@@ -306,54 +345,77 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
 
   };
 
-  const handleRemoveSignal = async () => {
-    if (isAccepted || isReceiving) {
-      try {
-        if (dataChannel && dataChannel.readyState === "open") {
-          dataChannel.send(JSON.stringify({ type: "file-aborted" }));
-          handleRemove();
-        }
-      } catch (error) {
-        console.error("Error sending abort message:", error);
+  const handleCancelSignal = () => {
+    if (!currentTransferId.current) return;
+
+    try {
+      if (fileTransferChannel && fileTransferChannel.readyState === "open") {
+
+        fileTransferChannel.send(JSON.stringify({
+          type: "file-aborted",
+          transferId: currentTransferId.current
+        }));
+
+        // Mark as canceled locally
+        setIsCanceled(true);
+        toast.info("Transfer canceled");
+        handleCancelTransfer();
       }
+    } catch (error) {
+      console.error("Error sending cancel message:", error);
     }
   };
 
-  const handleRemove = async () => {
+  const handleRemove = () => {
+    if ((isAccepted || isReceiving) && progress > 0 && progress < 100) {
+      handleCancelSignal();
+    } else {
+      resetFileTransfer();
+    }
+  };
+  const resetTimer = () => {
+    if (timerId.current) clearInterval(timerId.current);
+    timerId.current = null;
+    setTimeLeft(30);
+  };
+
+  const handleCancelTransfer = () => {
+    // Clean up FileReader if active
     if (reader.current) {
       reader.current.onload = null;
       reader.current.abort();
       reader.current = null;
     }
 
-    resetTimer(); // Clear timer
-    setFile(null); // Reset file state
-    fileToSendRef.current = null; // Clear file ref
-    fileMeta.current = null; // Clear file metadata
-    receiveBuffer.current = []; // Clear receive buffer
-    receivedSize.current = 0; // Reset received size
+    setIsCanceled(true);
+    resetTimer();
 
-    // Explicitly clear the display file state
+    // Don't reset everything immediately to allow UI to show cancellation state
+    // Instead, delay the full reset
+    setTimeout(() => {
+      resetFileTransfer();
+    }, 1000);
+  };
+  const resetFileTransfer = () => {
+
+    setFile(null);
+    fileToSendRef.current = null;
+    fileMeta.current = null;
+    receiveBuffer.current = [];
+    receivedSize.current = 0;
+    currentTransferId.current = null;
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+
     setDisplayFile(null);
-
-    // Reset all UI states
     setIsReceiving(false);
     setIsWaiting(false);
     setIsAccepted(false);
     setProgress(0);
-    setFileAbortTrigger(false); // Reset the trigger for remote abort
-
-    if (isAccepted || isReceiving) {
-      await fileTransferChannel.close();
-      setTrigger(prev => !prev);
-    }
-
-
-  }
-  const resetTimer = () => {
-    if (timerId.current) clearInterval(timerId.current);
-    timerId.current = null;
-    setTimeLeft(30);
+    setIsCanceled(false);
+    setFileAbortTrigger(false);
   };
 
 
@@ -404,7 +466,7 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
                     "shadow-sm"
                   )}
                 >
-                  <div className="flex justify-between w-full items-center gap-4">
+                  <div className="flex justify-between w-65 truncate items-center gap-4">
                     <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -423,7 +485,7 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
                     </motion.p>
                   </div>
 
-                  <div className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
+                  <div className="flex text-sm md:flex-row flex-col items-start md:items-center w-65 mt-2 justify-between text-neutral-600 dark:text-neutral-400">
                     <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -457,7 +519,7 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
                     {isWaiting ? `Waiting (${timeLeft}s)` : isAccepted ? "Sending..." : "Send"}
                   </Button>
                   <Button
-                    onClick={(isAccepted || isReceiving) && progress > 0 && progress < 100 ? handleRemoveSignal : handleRemove}
+                    onClick={handleRemove}
                     variant="destructive"
                     disabled={isWaiting}
                   >
@@ -483,10 +545,10 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
                       className="text-neutral-600 flex flex-col items-center"
                     >
                       Drop it
-                      <IconUpload className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
+                      <Upload className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
                     </motion.p>
                   ) : (
-                    <IconUpload className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />
+                    <Upload className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />
                   )}
                 </motion.div>
 

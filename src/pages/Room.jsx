@@ -111,7 +111,6 @@ export default function Room() {
     }, [roomId]);
 
     useEffect(() => {
-        // Put your sound file in /public
         if (dataChannel) {
             const handleMessage = (event) => {
                 let handled = false;
@@ -374,10 +373,9 @@ export default function Room() {
 
             <div className="flex-1 overflow-hidden">
                 {!isMobile ? (
-                    // DESKTOP VIEW
+                    // DESKTOP VIEW - Both panels visible with resizing
                     <ResizablePanelGroup direction="horizontal" className="h-full">
                         <ResizablePanel defaultSize={75} minSize={70} className="p-4">
-                            {/* Main content */}
                             {renderMainContent()}
                         </ResizablePanel>
                         <ResizableHandle withHandle />
@@ -396,21 +394,32 @@ export default function Room() {
                             />
                         </ResizablePanel>
                     </ResizablePanelGroup>
-                ) : isChatOpen ? (
-                    // MOBILE VIEW - CHAT ONLY
-                    <div className="h-full">
-                        <ChatPanel
-                            messages={messages}
-                            inputMessage={inputMessage}
-                            sendMessage={sendMessage}
-                            setInputMessage={setInputMessage}
-                            acceptFile={acceptFile}
-                            rejectFile={rejectFile}
-                        />
-                    </div>
                 ) : (
-                    // MOBILE VIEW - MAIN ONLY
-                    <div className="p-2 h-full overflow-y-auto">{renderMainContent()}</div>
+                    // MOBILE VIEW - Use CSS for showing/hiding instead of unmounting
+                    <div className="h-full relative">
+                        {/* Main content always rendered but hidden when chat is open */}
+                        <div
+                            className={`p-2 h-full overflow-y-auto transition-opacity duration-300 ${isChatOpen ? 'opacity-0 absolute inset-0 pointer-events-none' : 'opacity-100'
+                                }`}
+                        >
+                            {renderMainContent()}
+                        </div>
+
+                        {/* Chat panel always rendered but hidden when chat is closed */}
+                        <div
+                            className={`h-full transition-opacity duration-300 ${isChatOpen ? 'opacity-100' : 'opacity-0 absolute inset-0 pointer-events-none'
+                                }`}
+                        >
+                            <ChatPanel
+                                messages={messages}
+                                inputMessage={inputMessage}
+                                sendMessage={sendMessage}
+                                setInputMessage={setInputMessage}
+                                acceptFile={acceptFile}
+                                rejectFile={rejectFile}
+                            />
+                        </div>
+                    </div>
                 )}
             </div>
 

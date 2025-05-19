@@ -53,8 +53,12 @@ export default function JoinRoom() {
                 setJoining(false);
                 return;
             }
+            if (roomData?.connectionStatus === "connected") {
+                toast.error("Room is taken. Please try again later.");
+                setJoining(false);
+                return;
+            }
 
-            // Request access to media devices
             let mediaStream;
             try {
                 mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
