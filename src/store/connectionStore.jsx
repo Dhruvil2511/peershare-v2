@@ -124,13 +124,13 @@ const useWebRTCStore = create((set, get) => ({
   },
 
   // Create room and offer
-  createRoom: async (customRoomID, isStale) => {
+  createRoom: async (customRoomID, isStale,{enableCamera,enableMicrophone}) => {
 
     const roomId = customRoomID ? customRoomID : Math.random().toString(36).substring(2, 10);
     console.log("Generated room ID:", roomId);
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: enableCamera, audio: enableMicrophone });
       set({ localStream: stream });
 
     } catch (error) {

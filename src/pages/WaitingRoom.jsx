@@ -26,7 +26,7 @@ export default function WaitingRoom() {
     const copyRoomLink = () => {
         const roomLink = `${window.location.origin}/join-room/${roomId}`;
         navigator.clipboard.writeText(roomLink);
-        toast.success("Room link copied to clipboard!", { duration: 1500, });
+        toast.success("Room link copied to clipboard!", { duration: 2000, });
     };
 
     // Check if user is authorized as caller and monitor connection state
@@ -131,9 +131,6 @@ export default function WaitingRoom() {
                                 <VideoOff className="w-8 h-8" />
                                 <MicOff className="w-8 h-8" />
                             </div>
-                            <p className="text-sm text-primary">
-                                Please allow access to your <strong>camera</strong> and <strong>microphone</strong> to continue.
-                            </p>
                             <p className="text-xs text-muted-foreground mt-1">
                                 (Camera and mic are initially off. You can turn them on after joining.)
                             </p>

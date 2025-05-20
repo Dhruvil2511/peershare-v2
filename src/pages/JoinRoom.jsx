@@ -6,7 +6,9 @@ import { doc, getDoc, collection, addDoc, onSnapshot, setDoc } from "firebase/fi
 import { db } from "../config/firebaseconfig";
 import iceconfig from "../config/iceconfig";
 import useWebRTCStore from "../store/connectionStore";
-import { VideoOff, MicOff } from "lucide-react";
+import { VideoOff, MicOff, Mic, Camera } from "lucide-react";
+import { Switch } from "../components/ui/switch";
+import { Label } from "../components/ui/label";
 import { toast } from "sonner";
 
 
@@ -15,6 +17,8 @@ export default function JoinRoom() {
     const navigate = useNavigate();
     const [joining, setJoining] = useState(false);
     const [error, setError] = useState(null);
+    const [enableCamera, setEnableCamera] = useState(true);
+    const [enableMicrophone, setEnableMicrophone] = useState(true);
 
     // Access Zustand store
     const initializeCallee = useWebRTCStore(state => state.initializeCallee);
@@ -61,7 +65,11 @@ export default function JoinRoom() {
 
             let mediaStream;
             try {
-                mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                // Only request the media types that are enabled
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: enableCamera,
+                    audio: enableMicrophone
+                });
                 setLocalStream(mediaStream);
             } catch (error) {
                 toast.error("Error accessing media devices.");
@@ -71,20 +79,18 @@ export default function JoinRoom() {
 
             mediaStream?.getTracks().forEach(track => {
                 peerConnection.addTrack(track, mediaStream);
-            }
-            );
-            mediaStream.getVideoTracks().forEach(track => { track.enabled = false });
-            mediaStream.getAudioTracks().forEach(track => (track.enabled = false));
+            });
+
+            // Set initial track states based on user preferences
+            mediaStream?.getVideoTracks().forEach(track => { track.enabled = false });
+            mediaStream?.getAudioTracks().forEach(track => (track.enabled = false));
 
             peerConnection.ontrack = event => {
                 setRemoteStream(event.streams[0]);
             };
 
-
             // Initialize as callee in store
             initializeCallee(peerConnection, roomId);
-
-
 
             // Setup connection event listeners
             peerConnection.addEventListener('connectionstatechange', () => {
@@ -216,16 +222,46 @@ export default function JoinRoom() {
                     <p className="text-center">
                         You're about to join room: <strong>{roomId}</strong>
                     </p>
+
+                    {/* Media Permission Controls */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold">Media Permissions</h3>
+                        <p className="text-sm text-muted-foreground">
+                            Choose which devices you want to enable for this session.
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                                <Camera className="h-5 w-5 text-primary" />
+                                <Label htmlFor="camera-toggle">Camera</Label>
+                            </div>
+                            <Switch
+                                id="camera-toggle"
+                                checked={enableCamera}
+                                onCheckedChange={setEnableCamera}
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                                <Mic className="h-5 w-5 text-primary" />
+                                <Label htmlFor="microphone-toggle">Microphone</Label>
+                            </div>
+                            <Switch
+                                id="microphone-toggle"
+                                checked={enableMicrophone}
+                                onCheckedChange={setEnableMicrophone}
+                            />
+                        </div>
+                    </div>
+
                     <div className="flex flex-col items-center text-center bg-muted p-4 rounded">
                         <div className="flex space-x-4 text-3xl text-gray-500 mb-2">
                             <VideoOff className="w-8 h-8" />
                             <MicOff className="w-8 h-8" />
                         </div>
-                        <p className="text-sm text-primary">
-                            Please allow access to your <strong>camera</strong> and <strong>microphone</strong> to continue.
-                        </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                            (Camera and mic are initially off. You can turn them on after joining.)
+                            (Camera and mic are initially off. You can turn them on after joining if you give permissions.)
                         </p>
                     </div>
 
@@ -256,8 +292,6 @@ export default function JoinRoom() {
                         <a href="/privacy" className="underline hover:text-primary transition-colors">Privacy Policy</a> and{" "}
                         <a href="/terms" className="underline hover:text-primary transition-colors">Terms & Conditions</a>.
                     </p>
-
-
                 </CardContent>
             </Card>
         </div>

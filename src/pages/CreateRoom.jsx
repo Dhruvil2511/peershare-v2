@@ -8,11 +8,16 @@ import useWebRTCStore from "../store/connectionStore";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../config/firebaseconfig";
 import { toast } from "sonner";
+import { Switch } from "../components/ui/switch";
+import { Label } from "../components/ui/label";
+import { Mic, Camera } from "lucide-react";
 
 export default function CreateRoom() {
     const [roomName, setRoomName] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
     const [isCustomRoomGenerating, setIsCustomRoomGenerating] = useState(false);
+    const [enableCamera, setEnableCamera] = useState(true);
+    const [enableMicrophone, setEnableMicrophone] = useState(true);
     const navigate = useNavigate();
 
     const createRoom = useWebRTCStore((state) => state.createRoom);
@@ -21,7 +26,8 @@ export default function CreateRoom() {
     const handleGenerateInstantRoom = async () => {
         setIsGenerating(true);
         try {
-            const generatedRoomId = await createRoom();
+            // Pass the media preferences to createRoom
+            const generatedRoomId = await createRoom(undefined, false, { enableCamera, enableMicrophone });
             if (generatedRoomId) {
                 navigate(`/waiting-room/${generatedRoomId}`);
             } else {
@@ -50,13 +56,15 @@ export default function CreateRoom() {
 
                 if (roomData?.connectionStatus === "disconnected" || isStale) {
                     toast.info("Room is stale. Reclaiming room");
-                    await createRoom(roomName.trim(), true);
+                    // Pass the media preferences to createRoom
+                    await createRoom(roomName.trim(), true, { enableCamera, enableMicrophone });
                     navigate(`/waiting-room/${roomName.trim()}`);
                 } else {
                     toast.error("Room is active. Try a different name.");
                 }
             } else {
-                await createRoom(roomName.trim());
+                // Pass the media preferences to createRoom
+                await createRoom(roomName.trim(), false, { enableCamera, enableMicrophone });
                 navigate(`/waiting-room/${roomName.trim()}`);
             }
         } catch (error) {
@@ -73,6 +81,40 @@ export default function CreateRoom() {
                     <CardTitle className="text-2xl">Create a room</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                    {/* Media Permission Controls */}
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-semibold">Media Permissions</h3>
+                        <p className="text-sm text-muted-foreground">
+                            Choose which devices you want to enable for this session.
+                        </p>
+                        
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                                <Camera className="h-5 w-5 text-primary" />
+                                <Label htmlFor="camera-toggle">Camera</Label>
+                            </div>
+                            <Switch 
+                                id="camera-toggle" 
+                                checked={enableCamera}
+                                onCheckedChange={setEnableCamera}
+                            />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                                <Mic className="h-5 w-5 text-primary" />
+                                <Label htmlFor="microphone-toggle">Microphone</Label>
+                            </div>
+                            <Switch 
+                                id="microphone-toggle" 
+                                checked={enableMicrophone}
+                                onCheckedChange={setEnableMicrophone}
+                            />
+                        </div>
+                    </div>
+
+                    <Separator />
+
                     <div>
                         <h3 className="text-lg font-semibold">Join Instant Room</h3>
                         <p className="text-sm text-muted-foreground">

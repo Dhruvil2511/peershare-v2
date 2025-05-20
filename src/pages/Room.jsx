@@ -328,7 +328,7 @@ export default function Room() {
                             return newState;
                         });
                     }}
-                        className={`relative p-2 rounded-md transition-colors duration-200 ${isChatOpen ? "bg-[#DD2C00] text-white" : "bg-primary"
+                        className={`relative p-2 rounded-md transition-colors duration-200 ${isChatOpen ? "bg-[#8183F4] text-white" : "bg-primary"
                             }`}
                     >
                         <MessageSquare className="w-5 h-5" />
