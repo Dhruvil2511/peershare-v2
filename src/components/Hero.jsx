@@ -46,7 +46,7 @@ export function Hero() {
               {features.map((f, i) => (
                 <div key={i} className="flex items-center space-x-2 justify-center md:justify-start">
                   <span className="text-xl md:text-2xl">{f.icon}</span>
-                  <strong className="text-[#DD2C00] dark:text-[#DD2C00]">{f.label}</strong>
+                  <strong className="text-primary">{f.label}</strong>
                 </div>
               ))}
             </div>
