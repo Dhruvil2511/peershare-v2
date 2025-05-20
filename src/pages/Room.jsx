@@ -27,7 +27,7 @@ import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/config/firebaseconfig";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { DialogClose } from "@radix-ui/react-dialog";
-
+import { Separator } from "@radix-ui/react-separator";
 
 
 const getConnectionStatusColor = (status) => {
@@ -62,13 +62,14 @@ export default function Room() {
     const role = useWebRTCStore(state => state.role);
     const connectionStatus = useWebRTCStore(state => state.connectionStatus);
     const dataChannel = useWebRTCStore(state => state.dataChannel);
-    const incomingFileMeta = useWebRTCStore((s) => s.incomingFileMeta);
     const setIncomingFileMeta = useWebRTCStore((s) => s.setIncomingFileMeta);
     const fileTransferChannel = useWebRTCStore(state => state.fileTransferChannel);
     const localStream = useWebRTCStore(state => state.localStream);
     const remoteStream = useWebRTCStore(state => state.remoteStream);
     const resetState = useWebRTCStore(state => state.resetState);
     const isMobile = useWebRTCStore(state => state.isMobile);
+    const localName = useWebRTCStore(state => state.localName);
+    const setRemoteName = useWebRTCStore(state => state.setRemoteName);
 
 
 
@@ -76,6 +77,7 @@ export default function Room() {
     useEffect(() => {
         // Redirect if connection or role isn't set
         if (!connection || !role) {
+            resetState();
             alert("Peer left. Redirecting to home.");
             navigate("/");
         }
@@ -117,6 +119,10 @@ export default function Room() {
 
                 try {
                     const parsed = JSON.parse(event.data);
+                    if (parsed?.type === "name") {
+                        setRemoteName(parsed.name);
+                        return;
+                    }
                     if (parsed?.type === "video") return;
 
                     if (parsed?.type === "file-meta") {
@@ -276,9 +282,10 @@ export default function Room() {
             <div className="flex flex-wrap items-center justify-between p-4 border-b flex-shrink-0">
                 <div className="flex items-center gap-4">
                     <img src={logo} alt="Logo" className="h-8 w-auto" />
-                    <div className="text-lg font-semibold">PeerShare</div>
+                    <Separator orientation="vertical" className="h-6 w-px bg-border mx-2" />
                     <div className="text-lg font-semibold">Room: {roomId}</div>
-
+                    <Separator orientation="vertical" className="h-6 w-px bg-border mx-2" />
+                    <div className="text-lg font-semibold">{localName}</div>
                 </div>
                 <div className="flex items-center gap-4 mt-2 md:mt-0">
                     <span className="flex items-center justify-center gap-1">

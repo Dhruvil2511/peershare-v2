@@ -106,7 +106,7 @@ export default function FAQPage() {
                     >
                         Mail
                     </a>
-                    <Separator orientation="vertical" className="py-2 bg-white " />
+                    <Separator orientation="vertical" className="py-2 bg-primary" />
                     <Link
                         to="/contact"
                         className="text-primary hover:underline hover:text-blue-500"

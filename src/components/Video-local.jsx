@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Video, VideoOff, Mic, MicOff, MonitorUp, User, StopCircle } from "lucide-react";
 import useWebRTCStore from "@/store/connectionStore";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { randomColor } from "@/lib/utils";
 
 const VideoLocal = ({ localStream }) => {
     const ENABLE_SCREEN_SHARING = false;
@@ -16,6 +18,7 @@ const VideoLocal = ({ localStream }) => {
     const dataChannel = useWebRTCStore(state => state.dataChannel);
     const connection = useWebRTCStore(state => state.connection);
     const isMobile = useWebRTCStore(state => state.isMobile);
+    const localName = useWebRTCStore(state => state.localName);
 
     // Store original camera stream reference
     const cameraStreamRef = useRef(null);
@@ -236,7 +239,10 @@ const VideoLocal = ({ localStream }) => {
 
                 {!isCameraOn && !isScreenSharing && (
                     <div className="absolute inset-0 flex items-center justify-center text-white">
-                        <User size={48} className="opacity-60" />
+                        <Avatar className={`w-20 h-20 ${randomColor} p-2`}>
+                            <AvatarImage src={`https://anonymous-animals.azurewebsites.net/animal/${localName.split(" ")[1]}`} />
+                            <AvatarFallback><User size={48} /></AvatarFallback>
+                        </Avatar>
                     </div>
                 )}
 

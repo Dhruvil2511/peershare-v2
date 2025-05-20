@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -10,6 +10,7 @@ import { VideoOff, MicOff, Mic, Camera } from "lucide-react";
 import { Switch } from "../components/ui/switch";
 import { Label } from "../components/ui/label";
 import { toast } from "sonner";
+import { name } from "@/lib/utils";
 
 
 export default function JoinRoom() {
@@ -30,10 +31,7 @@ export default function JoinRoom() {
     const setRemoteStream = useWebRTCStore(state => state.setRemoteStream);
     const resetState = useWebRTCStore(state => state.resetState);
     const setFileTransferChannel = useWebRTCStore(state => state.setFileTransferChannel);
-    const localStream = useWebRTCStore(state => state.localStream);
-    const remoteStream = useWebRTCStore(state => state.remoteStream);
-    const videoEnabled = useWebRTCStore(state => state.videoEnabled);
-    const audioEnabled = useWebRTCStore(state => state.audioEnabled);
+    const setLocalName = useWebRTCStore(state => state.setLocalName);
 
     // Handle joining the room
     const handleJoinRoom = async () => {
@@ -125,12 +123,13 @@ export default function JoinRoom() {
                     dataChannel.onopen = () => {
                         setTimeout(() => {
                             try {
-                                dataChannel.send("Welcome to PeerShare 👋");
-
+                                const nm = name;
+                                dataChannel.send(JSON.stringify({ type: "name", name:nm }));
+                                setLocalName(nm);
                             } catch (error) {
                                 toast.error("Error sending message.");
                             }
-                        }, 1000);
+                        }, 110);
 
                         console.log("✅ Chat channel open")
                     };

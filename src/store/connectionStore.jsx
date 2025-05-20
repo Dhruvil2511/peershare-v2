@@ -4,6 +4,7 @@ import { doc, setDoc, collection, addDoc, onSnapshot, deleteDoc, getDocs } from 
 import { db } from '../config/firebaseconfig';
 import iceconfig from '../config/iceconfig';
 import { toast } from 'sonner';
+import { name } from '@/lib/utils';
 
 const useWebRTCStore = create((set, get) => ({
   // Connection state
@@ -16,6 +17,8 @@ const useWebRTCStore = create((set, get) => ({
   localStream: null,
   remoteStream: null,
   isMobile: false, // Track if the device is mobile
+  localName: '',
+  remoteName: 'Anonymous User',
 
   // Data channel
   dataChannel: null,
@@ -26,7 +29,8 @@ const useWebRTCStore = create((set, get) => ({
   customRoom: false,
 
   setCustomRoom: (customRoom) => set({ customRoom }),
-
+  setLocalName: (localName) => set({ localName }),
+  setRemoteName: (remoteName) => set({ remoteName }),
   setIncomingFileMeta: (meta) => set({ incomingFileMeta: meta }),
   setIsMobile: (isMobile) => set({ isMobile }),
 
@@ -124,7 +128,7 @@ const useWebRTCStore = create((set, get) => ({
   },
 
   // Create room and offer
-  createRoom: async (customRoomID, isStale,{enableCamera,enableMicrophone}) => {
+  createRoom: async (customRoomID, isStale, { enableCamera, enableMicrophone }) => {
 
     const roomId = customRoomID ? customRoomID : Math.random().toString(36).substring(2, 10);
     console.log("Generated room ID:", roomId);
@@ -174,11 +178,13 @@ const useWebRTCStore = create((set, get) => ({
       console.log("✅ Caller data channel open");
       setTimeout(() => {
         try {
-          dataChannel.send("Welcome to PeerShare 👋");
+          const nm = name;
+          dataChannel.send(JSON.stringify({ type: "name", name: nm }));
+          set({ localName: nm });
         } catch (error) {
           console.error("❌ Failed to send via data channel:", error);
         }
-      }, 1000);
+      }, 100);
     };
 
     dataChannel.onclose = () => {

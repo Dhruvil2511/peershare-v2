@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Maximize, Mic, MicOff, Minimize, User, MonitorUp, PictureInPicture, PictureInPicture2 } from "lucide-react";
 import useWebRTCStore from "@/store/connectionStore";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { randomColor } from "@/lib/utils";
+
 
 const VideoRemote = ({ remoteStream }) => {
     const remoteVideoRef = useRef(null);
@@ -8,6 +11,7 @@ const VideoRemote = ({ remoteStream }) => {
     const dataChannel = useWebRTCStore(state => state.dataChannel);
     const videoEnabled = useWebRTCStore(state => state.videoEnabled);
     const audioEnabled = useWebRTCStore(state => state.audioEnabled);
+    const remoteName = useWebRTCStore(state => state.remoteName);
     const [remoteOff, setRemoteOff] = useState(!videoEnabled);
     const [remoteAudioOff, setRemoteAudioOff] = useState(!audioEnabled);
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -130,6 +134,10 @@ const VideoRemote = ({ remoteStream }) => {
                     <span>Screen Sharing</span>
                 </div>
             )}
+            {/* Remote name */}
+            <div className="absolute bottom-4 left-4 z-10 flex space-x-2  bg-muted text-primary text-sm px-2 py-1 rounded-md items-center ">
+                <span>{remoteName}</span>
+            </div>
 
             <div className="absolute bottom-4 right-4 z-10 flex space-x-2">
                 {/* PiP Button */}
@@ -166,7 +174,11 @@ const VideoRemote = ({ remoteStream }) => {
                     className={`absolute top-0 left-0 w-full h-full flex items-center justify-center text-white  ${remoteOff ? '' : 'hidden'
                         }`}
                 >
-                    <User size={48} className="opacity-60" />
+                    <Avatar className={`w-20 h-20 ${randomColor} p-2`}>
+                        <AvatarImage src={`https://anonymous-animals.azurewebsites.net/animal/${remoteName.split(" ")[1 ]}`} />
+                        <AvatarFallback className="bg-transparent"><User size={48}/></AvatarFallback>
+                    </Avatar>
+
                 </div>
             </div>
 
