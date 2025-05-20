@@ -2,7 +2,7 @@
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-import visual from "../assets/peershare_visual.png";
+import visual from "../assets/visual.webp";
 import chrome from "../assets/chrome.webp";
 import edge from "../assets/microsoft.webp";
 import firefox from "../assets/firefox.webp";

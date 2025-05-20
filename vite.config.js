@@ -14,8 +14,5 @@ export default defineConfig({
   server: {
     host: true,
     allowedHosts: ['6b74-103-250-166-205.ngrok-free.app'],
-    proxy: {
-      '/cleanup-room': 'http://localhost:3000'
-    }
   }
 })

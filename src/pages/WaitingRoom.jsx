@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { VideoOff, MicOff } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";

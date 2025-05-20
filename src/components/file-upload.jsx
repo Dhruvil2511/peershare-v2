@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import React, { useRef, useState, useEffect, use } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
@@ -36,15 +36,9 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
   const fileToSendRef = useRef(null);
   const fileMeta = useRef(null); // Store file metadata
   const currentTransferId = useRef(null);
-  const connection = useWebRTCStore((state) => state.connection);
   const incomingFileMeta = useWebRTCStore((s) => s.incomingFileMeta);
   const setIncomingFileMeta = useWebRTCStore((s) => s.setIncomingFileMeta);
   const fileTransferChannel = useWebRTCStore((state) => state.fileTransferChannel);
-  const setFileTransferChannel = useWebRTCStore((state) => state.setFileTransferChannel);
-  const dataChannel = useWebRTCStore((state => state.dataChannel));
-  const isMobile = useWebRTCStore((state) => state.isMobile);
-  const role = useWebRTCStore((state) => state.role);
-
 
   useEffect(() => {
     if (isReceiving && fileMeta.current) setDisplayFile(fileMeta.current);

@@ -13,7 +13,7 @@ const features = [
   { icon: '💬', label: 'Live Chat' },
   { icon: '🎥', label: 'Video Chat' },
   { icon: '⚡', label: 'File Transfer' },
-  { icon: '💻', label: 'Screen Share' }
+  { icon: '🌎', label: 'World Wide' }
 ];
 
 export function Hero() {

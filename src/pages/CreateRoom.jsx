@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Separator } from "../components/ui/separator";
 import { useNavigate } from "react-router-dom";
 import useWebRTCStore from "../store/connectionStore";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "../config/firebaseconfig";
 import { toast } from "sonner";
 import { Switch } from "../components/ui/switch";
