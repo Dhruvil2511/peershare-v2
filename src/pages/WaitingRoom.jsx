@@ -132,8 +132,7 @@ export default function WaitingRoom() {
                                 <MicOff className="w-8 h-8" />
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                                (Camera and mic are initially off. You can turn them on after joining.)
-                            </p>
+                                (Camera and mic are initially off. You can turn them on after joining if you give permissions.)                            </p>
                         </div>
 
 
@@ -155,7 +154,7 @@ export default function WaitingRoom() {
 
                     </div>
                 </CardContent>
-                <p className="text-xs text-muted-foreground text-center pt-4">
+                <p className="text-xs text-muted-foreground text-center px-4">
                     By using Peer Share, you agree to our{" "}
                     <a href="/privacy-policy" target="_blank" className="underline hover:text-primary transition-colors">Privacy Policy</a> and{" "}
                     <a href="/terms-of-service" className="underline hover:text-primary transition-colors">Terms & Conditions</a>.

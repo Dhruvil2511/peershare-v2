@@ -48,7 +48,7 @@ function Layout() {
   }, []);
 
   useEffect(() => {
-    setIsMobile(width <= 768);
+    setIsMobile(width <= 1000);
   }, [width]);
 
   return (

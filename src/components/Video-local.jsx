@@ -4,6 +4,7 @@ import useWebRTCStore from "@/store/connectionStore";
 import { toast } from "sonner";
 
 const VideoLocal = ({ localStream }) => {
+    const ENABLE_SCREEN_SHARING = false;
     const videoEnabled = useWebRTCStore(state => state.videoEnabled);
     const audioEnabled = useWebRTCStore(state => state.audioEnabled);
     const localVideoRef = useRef(null);
@@ -54,16 +55,7 @@ const VideoLocal = ({ localStream }) => {
 
     const requestMediaIfNeeded = async () => {
         if (!localStream) {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                setLocalStream(stream);
-                // Store the camera stream for later reference
-                cameraStreamRef.current = stream;
-                return stream;
-            } catch (err) {
-                toast("Camera and Microphone access is required to use this feature.");
-                return null;
-            }
+            toast("Camera/Microphone access is required.");
         }
         return localStream;
     };
@@ -232,24 +224,21 @@ const VideoLocal = ({ localStream }) => {
     };
 
     return (
-        <div className="relative w-full h-full rounded-xl overflow-hidden group bg-black">
-            <div className="relative w-full h-full rounded-xl overflow-hidden group">
-                <div className="relative w-full  rounded-xl overflow-hidden">
-                    <video
-                        ref={localVideoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className={`w-full  object-cover ${isCameraOn || isScreenSharing ? 'block' : 'hidden'}`}
-                    />
+        <div className="relative w-full  rounded-xl overflow-hidden group bg-black">
+            <div className="aspect-video relative w-full  rounded-xl overflow-hidden">
+                <video
+                    ref={localVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className={`w-full object-cover ${isCameraOn || isScreenSharing ? 'block' : 'hidden'}`}
+                />
 
-                    {!isCameraOn && !isScreenSharing && (
-                        <div className="absolute inset-0 flex items-center justify-center text-white">
-                            <User size={48} className="opacity-60" />
-                        </div>
-                    )}
-                </div>
-
+                {!isCameraOn && !isScreenSharing && (
+                    <div className="absolute inset-0 flex items-center justify-center text-white">
+                        <User size={48} className="opacity-60" />
+                    </div>
+                )}
 
                 {isScreenSharing && (
                     <div className="absolute top-2 left-2 bg-blue-600  text-sm px-2 py-1 rounded-md flex items-center">
@@ -284,7 +273,7 @@ const VideoLocal = ({ localStream }) => {
 
                     onClick={handleScreenShare}
                     className={`w-10 h-10 rounded-full items-center justify-center border transition-colors
-                                ${isMobile ? 'hidden' : 'flex'}
+                                ${isMobile || !ENABLE_SCREEN_SHARING ? 'hidden' : 'flex'}
                                 ${isScreenSharing ? "bg-blue-600 text-white" :
                             isRemoteScreenSharing ? "bg-zinc-700 text-zinc-400 cursor-not-allowed" :
                                 "bg-muted text-primary"}`}
