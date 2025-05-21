@@ -1,6 +1,6 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, Coffee, Github, Linkedin } from "lucide-react";
+import { Mail, Coffee, } from "lucide-react";
 import dp from "../assets/dp.webp";
 import pg from "../assets/pg.webp";
 const creators = [
@@ -9,16 +9,12 @@ const creators = [
         image: dp,
         role: "Developer",
         email: "mailto:peershare.contact@gmail.com",
-        github: "https://github.com/dhruvil2511",
-        linkedin: "https://linkedin.com/in/dhruvil2511",
     },
     {
         name: "Priyanshu Gupta",
         image: pg,
         role: "Developer",
         email: "mailto:peershare.contact@gmail.com",
-        github: "https://github.com/priyanshugupta24",
-        linkedin: "https://www.linkedin.com/in/priyanshu-gupta-45b285224/",
     },
 ];
 
@@ -40,12 +36,6 @@ export default function Contact() {
                         <h2 className="text-2xl font-bold">{creator.name}</h2>
                         <p className="text-sm text-muted-foreground mb-4">{creator.role}</p>
                         <div className="flex justify-center gap-4">
-                            <a href={creator.github} target="_blank" rel="noopener noreferrer">
-                                <Github className="hover:text-black transition" />
-                            </a>
-                            <a href={creator.linkedin} target="_blank" rel="noopener noreferrer">
-                                <Linkedin className="hover:text-blue-600 transition" />
-                            </a>
                             <a href={creator.email}>
                                 <Mail className="hover:text-red-500 transition" />
                             </a>
