@@ -4,8 +4,8 @@ import { HeroHighlight, Highlight } from "./ui/hero-highlight";
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ChevronDown } from "lucide-react";
-import Lottie from 'lottie-react';
 import heroAnimation from '../assets/hero-animation.json';
+import LottiePlayer from "./LottiePlayer";
 
 const features = [
   { icon: '🤝', label: 'Peer To Peer' },
@@ -61,7 +61,7 @@ export function Hero() {
 
           {/* Right Image Section */}
           <div className="md:w-1/2 md:mt-0 flex justify-center">
-            <Lottie animationData={heroAnimation} />
+            <LottiePlayer animationData={heroAnimation} />
           </div>
         </div>
       </section>

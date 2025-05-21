@@ -2,12 +2,12 @@
 import React from "react";
 import { twMerge } from "tailwind-merge";
 import { TracingBeam } from "./ui/tracing-beam";
-import animation from '../assets/transfer.json';
-import earth from '../assets/save_earth.json';
-import secure from '../assets/secure.json';
-import globe from '../assets/globe.json';
-import video from '../assets/video.json';
-import Lottie from 'lottie-react';
+import p2p from "../assets/peer-to-peer.svg"
+import videocall from "../assets/video-call.svg";
+import eco_friendly from "../assets/eco-friendly.svg";
+import secure from "../assets/secure.svg";
+import worldwide from "../assets/world-wide.svg";
+
 
 export function TracingBeamContent() {
   return (
@@ -24,10 +24,11 @@ export function TracingBeamContent() {
             </p>
 
             <div className="flex justify-center mb-8">
-              {item.animation && (
-                <Lottie
-                  animationData={item.animation}
-                  className="w-[250px] md:w-[500px] mx-auto"
+              {item.source && (
+                <img
+                  src={item.source}
+                  alt={item.badge}
+                  className="w-60 h-60 object-contain"
                 />
               )}
             </div>
@@ -53,7 +54,7 @@ const dummyContent = [
       </ul>
     ),
     badge: "PeerShare",
-    animation: animation,
+    source: p2p,
   },
   {
     title: "Live Chat & Video Call",
@@ -65,7 +66,7 @@ const dummyContent = [
       </ul>
     ),
     badge: "Live Chat & Video",
-    animation: video,
+    source: videocall,
   },
   {
     title: "Low Environmental Impact",
@@ -77,7 +78,7 @@ const dummyContent = [
       </ul>
     ),
     badge: "Eco-Friendly",
-    animation: earth,
+    source: eco_friendly,
   },
   {
     title: "Your Files Stay Private",
@@ -89,7 +90,7 @@ const dummyContent = [
       </ul>
     ),
     badge: "Privacy",
-    animation: secure,
+    source: secure,
   },
   {
     title: "Global Sharing Made Simple",
@@ -101,6 +102,6 @@ const dummyContent = [
       </ul>
     ),
     badge: "Global",
-    animation: globe,
+    source: worldwide,
   },
 ];

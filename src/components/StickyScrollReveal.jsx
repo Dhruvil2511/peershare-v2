@@ -6,7 +6,7 @@ import earth from '../assets/save_earth.json';
 import secure from '../assets/secure.json';
 import globe from '../assets/globe.json';
 import video from '../assets/video.json';
-import Lottie from 'lottie-react';
+import LottiePlayer from "./LottiePlayer";
 
 const content = [
   {
@@ -15,7 +15,7 @@ const content = [
       "Peer Share uses WebRTC Technology to find the shortest path and make direct connections. It supports real-time file transfer, live chat, and video communication. We don't store anything! Data is shared without intermediate servers.",
     content: (
       <div className="flex h-full w-full items-center justify-center">
-        <Lottie
+        <LottiePlayer
           animationData={animation}
           className="w-[250px] md:w-[400px]"
         />
@@ -28,7 +28,7 @@ const content = [
       "Experience seamless live communication. Combines file-transfer, chat, and video into one powerful platform. PeerShare works across devices and platforms.",
     content: (
       <div className="flex h-full w-full items-center justify-center">
-        <Lottie
+        <LottiePlayer
           animationData={video}
           className="w-[250px] md:w-[400px]"
         />
@@ -41,7 +41,7 @@ const content = [
       "No need for massive servers – Peer Share is serverless. This reduces energy consumption and carbon footprint. Decentralized sharing = greener tech.",
     content: (
       <div className="flex h-full w-full items-center justify-center">
-        <Lottie
+        <LottiePlayer
           animationData={earth}
           className="w-[250px] md:w-[400px]"
         />
@@ -54,7 +54,7 @@ const content = [
       "WebRTC + DTLS ensures encrypted data transmission. End-to-end encryption: only receiver can decrypt. No storage = no access after tab is closed.",
     content: (
       <div className="flex h-full w-full items-center justify-center">
-        <Lottie
+        <LottiePlayer
           animationData={secure}
           className="w-[250px] md:w-[400px]"
         />
@@ -67,7 +67,7 @@ const content = [
       "Built for the web, works globally. Just an internet connection is enough. Close the tab and files vanish — secure & temporary.",
     content: (
       <div className="flex h-full w-full items-center justify-center">
-        <Lottie
+        <LottiePlayer
           animationData={globe}
           className="w-[250px] md:w-[400px]"
         />
