@@ -115,7 +115,7 @@ export default function WaitingRoom() {
 
                         <div className="flex flex-col items-center justify-around space-x-2 mb-6 md:flex-row">
                             <code className="bg-muted p-2 rounded w-full overflow-auto">
-                                {`${window.location.origin}/join/${roomId}`}
+                                {`${window.location.origin}/join-room/${roomId}`}
                             </code>
                             <Button
                                 variant="outline"
