@@ -113,18 +113,19 @@ export default function WaitingRoom() {
                     <div className="text-center">
                         <p className="text-md mb-4 md:tex-xl">Share this link with someone to join your room</p>
 
-                        <div className="flex flex-col items-center justify-around space-x-2 mb-6 md:flex-row">
-                            <code className="bg-muted p-2 rounded w-full overflow-auto">
+                        <div className="flex flex-row items-center justify-around gap-2 mb-6 overflow-x-auto w-full">
+                            <code className="bg-muted p-2 rounded whitespace-nowrap overflow-x-auto text-sm">
                                 {`${window.location.origin}/join-room/${roomId}`}
                             </code>
                             <Button
                                 variant="outline"
                                 onClick={copyRoomLink}
-                                className="mt-2 md:mt-0 w-full md:w-auto"
+                                className="flex-shrink-0"
                             >
                                 <Clipboard />
                             </Button>
                         </div>
+
                         {/* Device permissions prompt */}
                         <div className="flex flex-col items-center text-center bg-muted p-4 rounded">
                             <div className="flex space-x-4 text-3xl text-gray-500 mb-2">

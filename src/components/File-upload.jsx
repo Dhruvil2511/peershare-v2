@@ -67,6 +67,28 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
     };
   }, [fileTransferChannel]);
 
+  useEffect(() => {
+    const handlePaste = (e) => {
+      const fileToSend = fileToSendRef.current; 
+
+      if (file || fileToSend || isReceiving || incomingFileMeta) {
+        e.preventDefault();
+        return;
+      }
+
+      if (e.clipboardData && e.clipboardData.files.length > 0) {
+        const pastedFile = e.clipboardData.files[0];
+        handleFileChange([pastedFile]);
+      }
+    };
+
+    window.addEventListener("paste", handlePaste);
+    return () => {
+      window.removeEventListener("paste", handlePaste);
+    };
+  }, [file, isReceiving, incomingFileMeta]); 
+
+
   const generateTransferId = () => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   };
@@ -446,7 +468,7 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
         <div className="flex flex-col items-center justify-center h-full">
 
           <p className="relative z-20 font-sans font-bold text-neutral-700 dark:text-neutral-300 text-base">
-            Upload a file
+            Select, drag & drop, or paste a file
           </p>
 
           <div className="relative w-full h-full mt-8 max-w-xl mx-auto">
