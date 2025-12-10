@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { randomColor } from "@/lib/utils";
 
 const VideoLocal = ({ localStream }) => {
-    const ENABLE_SCREEN_SHARING = false;
+    const ENABLE_SCREEN_SHARING = true;
     const videoEnabled = useWebRTCStore(state => state.videoEnabled);
     const audioEnabled = useWebRTCStore(state => state.audioEnabled);
     const localVideoRef = useRef(null);
