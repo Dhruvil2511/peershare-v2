@@ -9,7 +9,7 @@ import ChatPanel from "@/components/Chat-Panel";
 import VideoLocal from "@/components/Video-local";
 import VideoRemote from "@/components/Video-remote";
 import { FileUpload } from "@/components/File-upload";
-import { Info, MessageSquare, PhoneOff } from 'lucide-react';
+import { Info, MessageSquare, PhoneOff, Mic, MicOff, Video, VideoOff, ScreenShare, ScreenShareOff } from 'lucide-react';
 import logo from "../assets/logo.svg"
 import { toast } from "sonner";
 import {
@@ -70,6 +70,12 @@ export default function Room() {
     const isMobile = useWebRTCStore(state => state.isMobile);
     const localName = useWebRTCStore(state => state.localName);
     const setRemoteName = useWebRTCStore(state => state.setRemoteName);
+    const audioEnabled = useWebRTCStore(state => state.audioEnabled);
+    const videoEnabled = useWebRTCStore(state => state.videoEnabled);
+    const toggleAudio = useWebRTCStore(state => state.toggleAudio);
+    const toggleVideo = useWebRTCStore(state => state.toggleVideo);
+    const isScreenSharing = useWebRTCStore(state => state.isScreenSharing);
+    const startScreenSharing = useWebRTCStore(state => state.startScreenSharing);
 
 
 
@@ -96,7 +102,7 @@ export default function Room() {
             }
         }
         checker();
-    }, [connectionStatus]);
+    }, [connectionStatus, roomId]);
 
 
     useEffect(() => {
@@ -168,7 +174,7 @@ export default function Room() {
             dataChannel.addEventListener("message", handleMessage);
             return () => dataChannel.removeEventListener("message", handleMessage);
         }
-    }, [dataChannel, isChatOpen]);
+    }, [dataChannel, isChatOpen, setRemoteName]);
 
 
 
@@ -326,6 +332,17 @@ export default function Room() {
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
+
+                    <Button variant="outline" onClick={toggleAudio} title={audioEnabled ? "Mute" : "Unmute"}>
+                        {audioEnabled ? <Mic /> : <MicOff />}
+                    </Button>
+                    <Button variant="outline" onClick={toggleVideo} title={videoEnabled ? "Disable Camera" : "Enable Camera"}>
+                        {videoEnabled ? <Video /> : <VideoOff />}
+                    </Button>
+
+                    <Button variant="outline" onClick={startScreenSharing} title={isScreenSharing ? "Stop Sharing" : "Start Sharing"}>
+                        {isScreenSharing ? <ScreenShareOff /> : <ScreenShare />}
+                    </Button>
 
                     <ModeToggle />
                     <Button title={isChatOpen ? "Hide Chat" : "Show Chat"} onClick={() => {
