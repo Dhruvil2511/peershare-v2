@@ -27,6 +27,7 @@ const useWebRTCStore = create((set, get) => ({
   videoEnabled: false,  // Track if video is enabled
   audioEnabled: false, // Track if audio is enabled
   isScreenSharing: false,
+  originalVideoTrack: null,
   customRoom: false,
 
   setCustomRoom: (customRoom) => set({ customRoom }),
@@ -147,17 +148,16 @@ const useWebRTCStore = create((set, get) => ({
   },
 
   startScreenSharing: async () => {
-    const { connection, localStream, isScreenSharing } = get();
+    const { connection, localStream, isScreenSharing, originalVideoTrack } = get();
     try {
       const sender = connection.getSenders().find(s => s.track && s.track.kind === 'video');
 
       if (isScreenSharing) {
         // Stop screen sharing
-        const originalTrack = localStream.getVideoTracks()[0];
-        if (sender) {
-          sender.replaceTrack(originalTrack);
+        if (sender && originalVideoTrack) {
+          sender.replaceTrack(originalVideoTrack);
         }
-        set({ isScreenSharing: false });
+        set({ isScreenSharing: false, originalVideoTrack: null });
         toast.success("Stopped screen sharing");
         return;
       }
@@ -165,22 +165,22 @@ const useWebRTCStore = create((set, get) => ({
       // Start screen sharing
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
-        audio: true
+        audio: false
       });
       const screenTrack = screenStream.getVideoTracks()[0];
 
       if (sender) {
+        set({ originalVideoTrack: localStream.getVideoTracks()[0] });
         sender.replaceTrack(screenTrack);
       }
       set({ isScreenSharing: true });
       toast.success("Started screen sharing");
 
       screenTrack.onended = () => {
-        const originalTrack = localStream.getVideoTracks()[0];
-        if (sender) {
-          sender.replaceTrack(originalTrack);
+        if (sender && originalVideoTrack) {
+          sender.replaceTrack(originalVideoTrack);
         }
-        set({ isScreenSharing: false });
+        set({ isScreenSharing: false, originalVideoTrack: null });
         toast.info("Screen sharing ended");
       };
     } catch (error) {

@@ -8,7 +8,6 @@ import { ModeToggle } from "@/components/mode-toggle";
 import ChatPanel from "@/components/Chat-Panel";
 import VideoLocal from "@/components/Video-local";
 import VideoRemote from "@/components/Video-remote";
-import { FileUpload } from "@/components/File-upload";
 import { Info, MessageSquare, PhoneOff, Mic, MicOff, Video, VideoOff, ScreenShare, ScreenShareOff } from 'lucide-react';
 import logo from "../assets/logo.svg"
 import { toast } from "sonner";
@@ -52,7 +51,6 @@ export default function Room() {
     const messagesEndRef = useRef(null);
     const [isChatOpen, setIsChatOpen] = useState(true);
     const [newMessageNotification, setNewMessageNotification] = useState(false); // Notification state
-    const [fileAbortTrigger, setFileAbortTrigger] = useState(false); // Trigger for file abort
     const [showEndCallDialog, setShowEndCallDialog] = useState(false);
 
 
@@ -87,7 +85,7 @@ export default function Room() {
             alert("Peer left. Redirecting to home.");
             navigate("/");
         }
-    }, [connection, role, navigate]);
+    }, [connection, role, navigate, resetState]);
 
 
     useEffect(() => {
@@ -146,7 +144,6 @@ export default function Room() {
                         handled = true;
                     } else if (parsed?.type === "file-aborted") {
                         toast.error("File transfer aborted");
-                        setFileAbortTrigger(true);
                         return;
                     }
                 } catch {
@@ -174,7 +171,7 @@ export default function Room() {
             dataChannel.addEventListener("message", handleMessage);
             return () => dataChannel.removeEventListener("message", handleMessage);
         }
-    }, [dataChannel, isChatOpen, setRemoteName]);
+    }, [dataChannel, isChatOpen, setRemoteName, setMessages]);
 
 
 
@@ -259,25 +256,9 @@ export default function Room() {
                 </div>
                 <div className="flex flex-col gap-4 md:h-full">
                     <div className="rounded-xl p-2 md:h-1/2">
-                        <VideoLocal localStream={localStream} isMicOn={false} isCameraOn={false} />
+                        <VideoLocal localStream={localStream} />
                     </div>
-                    <div className="rounded-xl p-2 h-1/2 md:h-full overflow-y-auto">
-                        <FileUpload
-                            onMetaSent={(meta) =>
-                                setMessages(prev => [
-                                    ...prev,
-                                    {
-                                        ...meta,
-                                        sender: "remote",
-                                        timestamp: new Date().toLocaleTimeString(),
-                                    }
-                                ])
-                            }
-                            fileAbortTrigger={fileAbortTrigger}
-                            setFileAbortTrigger={setFileAbortTrigger}
-                            audio={audio}
-                        />
-                    </div>
+                    <div className="rounded-xl p-2 h-1/2 md:h-full overflow-y-auto"></div>
                 </div>
             </div>
         </Card>
@@ -333,10 +314,10 @@ export default function Room() {
                         </DialogContent>
                     </Dialog>
 
-                    <Button variant="outline" onClick={toggleAudio} title={audioEnabled ? "Mute" : "Unmute"}>
+                    <Button variant={audioEnabled ? "outline" : "destructive"} onClick={toggleAudio} title={audioEnabled ? "Mute" : "Unmute"}>
                         {audioEnabled ? <Mic /> : <MicOff />}
                     </Button>
-                    <Button variant="outline" onClick={toggleVideo} title={videoEnabled ? "Disable Camera" : "Enable Camera"}>
+                    <Button variant={videoEnabled ? "outline" : "destructive"} onClick={toggleVideo} title={videoEnabled ? "Disable Camera" : "Enable Camera"}>
                         {videoEnabled ? <Video /> : <VideoOff />}
                     </Button>
 
@@ -410,6 +391,7 @@ export default function Room() {
                         >
                             <ChatPanel
                                 messages={messages}
+                                setMessages={setMessages}
                                 inputMessage={inputMessage}
                                 sendMessage={sendMessage}
                                 setInputMessage={setInputMessage}
