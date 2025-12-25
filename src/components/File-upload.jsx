@@ -1,22 +1,11 @@
 import { cn } from "@/lib/utils";
 import React, { useRef, useState, useEffect } from "react";
-import { motion } from "motion/react";
 import { Upload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import useWebRTCStore from "@/store/connectionStore";
 import { Button } from "./ui/button";
 
-
-const mainVariant = {
-  initial: { x: 0, y: 0 },
-  animate: { x: 20, y: -20, opacity: 0.9 },
-};
-
-const secondaryVariant = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-};
 
 export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbortTrigger, audio }) => {
   const [file, setFile] = useState(null);
@@ -342,6 +331,20 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
     };
     fileTransferChannel.send(JSON.stringify(metaData));
 
+    if (onMetaSent) {
+        onMetaSent(prev => [
+            ...prev,
+            {
+                type: "file-meta",
+                name: fileToSend.name,
+                size: fileToSend.size,
+                fileType: fileToSend.type,
+                sender: "local",
+                timestamp: new Date().toLocaleTimeString()
+            }
+        ]);
+    }
+
     setIsWaiting(true); // Set waiting state
 
     // Start timer countdown
@@ -443,9 +446,8 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
 
   return (
     <div className="w-full h-full" {...getRootProps()}>
-      <motion.div
+      <div
         onClick={handleClick}
-        whileHover="animate"
         className="p-10 group/file block rounded-lg cursor-pointer w-full h-full relative overflow-hidden"
       >
         <input
@@ -474,41 +476,31 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
           <div className="relative w-full h-full mt-8 max-w-xl mx-auto">
             {displayFile ? (
               <>
-                <motion.div
-                  layoutId="file-upload"
+                <div
                   className={cn(
                     "relative overflow-hidden z-40 bg-white dark:bg-neutral-900 flex flex-col items-start justify-start h-50 p-2 md:h-50 md:p-4 md:mx-auto rounded-md",
                     "shadow-sm"
                   )}
                 >
                   <div className="flex justify-between w-65 truncate items-center gap-4">
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
+                    <p
                       className="text-base text-neutral-700 dark:text-neutral-300 truncate max-w-xs"
                     >
                       {displayFile.name}
-                    </motion.p>
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
+                    </p>
+                    <p
                       className="rounded-lg px-2 py-1 w-fit shrink-0 text-sm text-neutral-600 dark:bg-neutral-800 dark:text-white shadow-input"
                     >
                       {(displayFile.size / (1024 * 1024)).toFixed(2)} MB
-                    </motion.p>
+                    </p>
                   </div>
 
                   <div className="flex text-sm md:flex-row flex-col items-start md:items-center w-65 mt-2 justify-between text-neutral-600 dark:text-neutral-400">
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
+                    <p
                       className="px-1 py-0.5 rounded-md bg-gray-100 dark:bg-neutral-800"
                     >
                       {displayFile.type}
-                    </motion.p>
+                    </p>
                   </div>
                   <div className="relative overflow-hidden z-40 bg-white dark:bg-neutral-900 flex flex-col items-start justify-start md:h-35 p-4 mt-4 w-full mx-auto rounded-md shadow-sm">
                     <p className="text-base text-neutral-700 dark:text-neutral-300">
@@ -524,7 +516,7 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
                 <div className="mt-6 flex justify-center gap-4" onClick={(e) => e.stopPropagation()}>
                   <Button
                     hidden={isReceiving}
@@ -544,38 +536,32 @@ export const FileUpload = ({ onChange, onMetaSent, fileAbortTrigger, setFileAbor
               </>
             ) : (
               <>
-                <motion.div
-                  layoutId="file-upload"
-                  variants={mainVariant}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                <div
                   className={cn(
                     "relative group-hover/file:shadow-2xl z-40 bg-white dark:bg-neutral-900 flex items-center justify-center h-32 mt-4 w-full max-w-[8rem] mx-auto rounded-md",
                     "shadow-[0px_10px_50px_rgba(0,0,0,0.1)]"
                   )}
                 >
                   {isDragActive ? (
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
+                    <p
                       className="text-neutral-600 flex flex-col items-center"
                     >
                       Drop it
                       <Upload className="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
-                    </motion.p>
+                    </p>
                   ) : (
                     <Upload className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />
                   )}
-                </motion.div>
+                </div>
 
-                <motion.div
-                  variants={secondaryVariant}
+                <div
                   className="absolute opacity-0 border border-dashed border-sky-400 inset-0 z-30 bg-transparent flex items-center justify-center h-32 mt-4 w-full max-w-[8rem] mx-auto rounded-md"
                 />
               </>
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 

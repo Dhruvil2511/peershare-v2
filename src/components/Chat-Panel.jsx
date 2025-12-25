@@ -1,9 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import { Button } from "../components/ui/button";
 import useWebRTCStore from "@/store/connectionStore";
+import { Plus } from 'lucide-react';
+import { FileUpload } from "@/components/File-upload";
 
 export default function ChatPanel({
     messages,
+    setMessages,
     inputMessage,
     setInputMessage,
     sendMessage,
@@ -13,6 +16,7 @@ export default function ChatPanel({
     const messagesEndRef = useRef(null);
     const incomingFileMeta = useWebRTCStore((s) => s.incomingFileMeta);
     const setIncomingFileMeta = useWebRTCStore((s) => s.setIncomingFileMeta);
+    const [showFileUpload, setShowFileUpload] = useState(false);
 
 
     // Timer state
@@ -111,6 +115,9 @@ export default function ChatPanel({
 
             {/* Input */}
             <form onSubmit={handleSubmit} className="flex gap-2 mt-auto">
+                <Button type="button" onClick={() => setShowFileUpload(!showFileUpload)}>
+                    <Plus />
+                </Button>
                 <input
                     type="text"
                     value={inputMessage}
@@ -123,6 +130,7 @@ export default function ChatPanel({
                     Send
                 </Button>
             </form>
+            {showFileUpload && <FileUpload onMetaSent={setMessages} />}
         </div>
     );
 }

@@ -26,6 +26,8 @@ const useWebRTCStore = create((set, get) => ({
   incomingFileMeta: null,
   videoEnabled: false,  // Track if video is enabled
   audioEnabled: false, // Track if audio is enabled
+  isScreenSharing: false,
+  originalVideoTrack: null,
   customRoom: false,
 
   setCustomRoom: (customRoom) => set({ customRoom }),
@@ -127,26 +129,80 @@ const useWebRTCStore = create((set, get) => ({
     });
   },
 
+  toggleAudio: () => {
+    const { localStream } = get();
+    localStream.getAudioTracks().forEach((track) => {
+      track.enabled = !track.enabled;
+      set({ audioEnabled: track.enabled });
+      toast.success(`Microphone ${track.enabled ? 'unmuted' : 'muted'}`);
+    });
+  },
+
+  toggleVideo: () => {
+    const { localStream } = get();
+    localStream.getVideoTracks().forEach((track) => {
+      track.enabled = !track.enabled;
+      set({ videoEnabled: track.enabled });
+      toast.success(`Camera ${track.enabled ? 'enabled' : 'disabled'}`);
+    });
+  },
+
+  startScreenSharing: async () => {
+    const { connection, localStream, isScreenSharing, originalVideoTrack } = get();
+    try {
+      const sender = connection.getSenders().find(s => s.track && s.track.kind === 'video');
+
+      if (isScreenSharing) {
+        // Stop screen sharing
+        if (sender && originalVideoTrack) {
+          sender.replaceTrack(originalVideoTrack);
+        }
+        set({ isScreenSharing: false, originalVideoTrack: null });
+        toast.success("Stopped screen sharing");
+        return;
+      }
+
+      // Start screen sharing
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: false
+      });
+      const screenTrack = screenStream.getVideoTracks()[0];
+
+      if (sender) {
+        set({ originalVideoTrack: localStream.getVideoTracks()[0] });
+        sender.replaceTrack(screenTrack);
+      }
+      set({ isScreenSharing: true });
+      toast.success("Started screen sharing");
+
+      screenTrack.onended = () => {
+        if (sender && originalVideoTrack) {
+          sender.replaceTrack(originalVideoTrack);
+        }
+        set({ isScreenSharing: false, originalVideoTrack: null });
+        toast.info("Screen sharing ended");
+      };
+    } catch (error) {
+      toast.error("Error starting or stopping screen sharing");
+      console.error("Screen sharing error:", error);
+    }
+  },
+
   // Create room and offer
   createRoom: async (customRoomID, isStale, { enableCamera, enableMicrophone }) => {
-
-    const roomId = customRoomID ? customRoomID : Math.random().toString(36).substring(2, 10);
-    console.log("Generated room ID:", roomId);
-
     try {
+      const roomId = customRoomID ? customRoomID : Math.random().toString(36).substring(2, 10);
+      console.log("Generated room ID:", roomId);
+
       const stream = await navigator.mediaDevices.getUserMedia({ video: enableCamera, audio: enableMicrophone });
-      set({ localStream: stream });
+      set({ localStream: stream, audioEnabled: enableMicrophone, videoEnabled: enableCamera });
 
-    } catch (error) {
-      toast.error("Error accessing media devices");
-    }
-    const connection = new RTCPeerConnection(iceconfig);
+      const connection = new RTCPeerConnection(iceconfig);
 
-    get().localStream?.getTracks().forEach(track => {
-      connection.addTrack(track, get().localStream);
-    });
-    get().localStream?.getVideoTracks().forEach(track => { track.enabled = false });
-    get().localStream?.getAudioTracks().forEach(track => { track.enabled = false });
+      stream.getTracks().forEach(track => {
+        connection.addTrack(track, stream);
+      });
 
     connection.ontrack = (event) => {
       set({ remoteStream: event.streams[0] });
@@ -266,7 +322,13 @@ const useWebRTCStore = create((set, get) => ({
       return roomId;
     } catch (error) {
       console.error("Error during offer creation:", error);
+      toast.error("Error creating offer.");
       return null;
+    }
+    } catch (error) {
+        toast.error("Failed to create room. Please check permissions and try again.");
+        console.error("Error creating room:", error);
+        return null;
     }
   },
 
